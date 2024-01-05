@@ -19,7 +19,7 @@ app.use("/auth", userRouter);
 app.use("/products", productRouter);
 
 mongoose.connect(
-  "mongodb+srv://jackcruiser800:mynameisrama@cluster0.gcwldi3.mongodb.net/"
+  "mongodb+srv://jackcruiser800:mynameisrama@cluster0.gcwldi3.mongodb.net/?retryWrites=true&w=majority"
 );
 
 app.listen(3001, () => console.log("Server started"));
