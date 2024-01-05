@@ -22,4 +22,8 @@ mongoose.connect(
   "mongodb+srv://jackcruiser800:mynameisrama@cluster0.gcwldi3.mongodb.net/?retryWrites=true&w=majority"
 );
 
+app.get("/",(req,res)=>{
+  res.json("hello");
+});
+
 app.listen(3001, () => console.log("Server started"));
