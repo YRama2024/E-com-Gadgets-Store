@@ -7,15 +7,21 @@ interface Props {
 }
 
 export const CartItem = (props: Props) => {
-  const { _id, productName, description, price, stockQuantity, imageURL } =
-    props.data;
+  const {
+    _id,
+    productName,
+    description,
+    price,
+    stockQuantity,
+    imageUrl: imageUrl,
+  } = props.data;
   const { getCartItemCount, addToCart, removeFromCart, updateCartItemCount } =
     useContext(ShopContext);
 
   const cartItemCount = getCartItemCount(_id);
   return (
     <div className="cartItem">
-      <img src={imageURL} />
+      <img src={imageUrl} />
       <div className="description">
         <p>
           <b>{productName}</b>

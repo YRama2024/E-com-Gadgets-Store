@@ -12,6 +12,6 @@ const app = (0, express_1.default)();
 app.use(express_1.default.json());
 app.use((0, cors_1.default)());
 app.use("/auth", user_1.userRouter);
-app.use("/product", product_1.productRouter);
-mongoose_1.default.connect("mongodb+srv://machadop1407:mypassword@cluster0.jqxu4ha.mongodb.net/Cluster0");
+app.use("/products", product_1.productRouter);
+mongoose_1.default.connect("mongodb+srv://jackcruiser800:mynameisrama@cluster0.gcwldi3.mongodb.net/");
 app.listen(3001, () => console.log("Server started"));

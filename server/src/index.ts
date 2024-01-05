@@ -13,7 +13,7 @@ app.use("/auth", userRouter);
 app.use("/products", productRouter);
 
 mongoose.connect(
-  "mongodb+srv://machadop1407:mypassword@cluster0.jqxu4ha.mongodb.net/Cluster0"
+  "mongodb+srv://jackcruiser800:mynameisrama@cluster0.gcwldi3.mongodb.net/"
 );
 
 app.listen(3001, () => console.log("Server started"));

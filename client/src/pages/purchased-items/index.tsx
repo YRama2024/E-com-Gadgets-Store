@@ -16,7 +16,7 @@ export const PurchasedItemsPage = () => {
           return (
             <div key={item._id} className="item">
               <h3> {item.productName} </h3>
-              <img src={item.imageURL} alt={item.productName} />
+              <img src={item.imageUrl} alt={item.productName} />
               <p> ${item.price} </p>
               <button onClick={() => addToCart(item._id)}>
                 Purchase Again {cartItemCount > 0 && <> ({cartItemCount})</>}

@@ -12,40 +12,47 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.verifyToken = exports.userRouter = void 0;
+exports.userRouter = exports.verifyToken = void 0;
 const express_1 = __importDefault(require("express"));
 const jsonwebtoken_1 = __importDefault(require("jsonwebtoken"));
 const bcrypt_1 = __importDefault(require("bcrypt"));
 const router = express_1.default.Router();
 exports.userRouter = router;
 const user_1 = require("../models/user");
+const errors_1 = require("../common/errors");
 router.post("/register", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password } = req.body;
-    const user = yield user_1.UserModel.findOne({ username });
-    if (user) {
-        return res.status(400).json({ message: "Username already exists" });
+    try {
+        const user = yield user_1.UserModel.findOne({ username });
+        if (user) {
+            return res.status(400).json({ type: errors_1.UserErrors.USERNAME_ALREADY_EXISTS });
+        }
+        const hashedPassword = yield bcrypt_1.default.hash(password, 10);
+        const newUser = new user_1.UserModel({ username, password: hashedPassword });
+        yield newUser.save();
+        res.json({ message: "User registered successfully" });
     }
-    const hashedPassword = yield bcrypt_1.default.hash(password, 10);
-    const newUser = new user_1.UserModel({ username, password: hashedPassword });
-    yield newUser.save();
-    res.json({ message: "User registered successfully" });
+    catch (err) {
+        res.status(500).json({ type: err });
+    }
 }));
 router.post("/login", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     const { username, password } = req.body;
-    const user = yield user_1.UserModel.findOne({ username });
-    if (!user) {
-        return res
-            .status(400)
-            .json({ message: "Username or password is incorrect" });
+    try {
+        const user = yield user_1.UserModel.findOne({ username });
+        if (!user) {
+            return res.status(400).json({ type: errors_1.UserErrors.NO_USER_FOUND });
+        }
+        const isPasswordValid = yield bcrypt_1.default.compare(password, user.password);
+        if (!isPasswordValid) {
+            return res.status(400).json({ type: errors_1.UserErrors.WRONG_CREDENTIALS });
+        }
+        const token = jsonwebtoken_1.default.sign({ id: user._id }, "secret");
+        res.json({ token, userID: user._id });
     }
-    const isPasswordValid = yield bcrypt_1.default.compare(password, user.password);
-    if (!isPasswordValid) {
-        return res
-            .status(400)
-            .json({ message: "Username or password is incorrect" });
+    catch (err) {
+        res.status(500).json({ type: err });
     }
-    const token = jsonwebtoken_1.default.sign({ id: user._id }, "secret");
-    res.json({ token, userID: user._id });
 }));
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -62,3 +69,16 @@ const verifyToken = (req, res, next) => {
     }
 };
 exports.verifyToken = verifyToken;
+router.get("/available-money/:userID", exports.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { userID } = req.params;
+    try {
+        const user = yield user_1.UserModel.findById(userID);
+        if (!user) {
+            return res.status(400).json({ type: errors_1.UserErrors.NO_USER_FOUND });
+        }
+        res.json({ availableMoney: user.availableMoney });
+    }
+    catch (err) {
+        res.status(500).json({ type: err });
+    }
+}));

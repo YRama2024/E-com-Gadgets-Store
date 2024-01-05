@@ -16,7 +16,7 @@ export const Navbar = () => {
   return (
     <div className="navbar">
       <div className="navbarTitle">
-        <h1>PedroTech Shop</h1>
+        <h1>Tech Haven store</h1>
       </div>
       <div className="navbarLinks">
         {isAuthenticated && (

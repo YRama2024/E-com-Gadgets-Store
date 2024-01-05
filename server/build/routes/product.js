@@ -8,36 +8,68 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
-var __importDefault = (this && this.__importDefault) || function (mod) {
-    return (mod && mod.__esModule) ? mod : { "default": mod };
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 exports.productRouter = void 0;
-const express_1 = __importDefault(require("express"));
+const express_1 = require("express");
 const errors_1 = require("../common/errors");
-const router = express_1.default.Router();
+const router = (0, express_1.Router)();
 exports.productRouter = router;
 const product_1 = require("../models/product");
 const user_1 = require("../models/user");
-router.post("/purchase-cart", (req, res) => __awaiter(void 0, void 0, void 0, function* () {
-    const { customerID, productIDs } = req.body;
-    const user = yield user_1.UserModel.findOne({ customerID });
-    const products = yield product_1.ProductModel.find({ _id: { $in: productIDs } });
-    if (!user) {
-        return res.status(400).json({ type: errors_1.ProductErrors.NO_USERS_FOUND });
+const user_2 = require("./user");
+router.get("/", (_, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const products = yield product_1.ProductModel.find({});
+    res.json({ products });
+}));
+router.post("/checkout", user_2.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { customerID, cartItems } = req.body;
+    try {
+        const user = yield user_1.UserModel.findById(customerID);
+        const productIDs = Object.keys(cartItems);
+        const products = yield product_1.ProductModel.find({ _id: { $in: productIDs } });
+        if (!user) {
+            return res.status(400).json({ type: errors_1.ProductErrors.NO_USERS_FOUND });
+        }
+        if (products.length !== productIDs.length) {
+            return res.status(400).json({ type: errors_1.ProductErrors.NO_PRODUCT_FOUND });
+        }
+        let totalPrice = 0;
+        for (const item in cartItems) {
+            const product = products.find((product) => String(product._id) === item);
+            if (!product) {
+                return res.status(400).json({ type: errors_1.ProductErrors.NO_PRODUCT_FOUND });
+            }
+            if (product.stockQuantity < cartItems[item]) {
+                return res.status(400).json({ type: errors_1.ProductErrors.NOT_ENOUGH_STOCK });
+            }
+            totalPrice += product.price * cartItems[item];
+        }
+        if (user.availableMoney < totalPrice) {
+            return res.status(400).json({ type: errors_1.ProductErrors.NO_AVAILABLE_MONEY });
+        }
+        user.availableMoney -= totalPrice;
+        user.purchasedItems.push(...productIDs);
+        yield user.save();
+        yield product_1.ProductModel.updateMany({ _id: { $in: productIDs } }, { $inc: { stockQuantity: -1 } });
+        res.json({ purchasedItems: user.purchasedItems });
     }
-    if (products.length !== productIDs.length) {
-        return res.status(400).json({ type: errors_1.ProductErrors.NO_PRODUCT_FOUND });
+    catch (error) {
+        console.log(error);
     }
-    let totalPrice = 0;
-    products.forEach((product) => {
-        totalPrice += product.price;
-    });
-    if (user.availableMoney < totalPrice) {
-        return res.status(400).json({ type: errors_1.ProductErrors.NO_AVAILABLE_MONEY });
+}));
+router.get("/purchased-items/:customerID", user_2.verifyToken, (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    const { customerID } = req.params;
+    try {
+        const user = yield user_1.UserModel.findById(customerID);
+        if (!user) {
+            return res.status(400).json({ type: errors_1.ProductErrors.NO_USERS_FOUND });
+        }
+        const products = yield product_1.ProductModel.find({
+            _id: { $in: user.purchasedItems },
+        });
+        res.json({ purchasedItems: products });
     }
-    user.availableMoney -= totalPrice;
-    user.purchasedItems.push(...productIDs);
-    const { availableMoney, purchasedItems } = user;
-    res.json({ availableMoney, purchasedItems });
+    catch (error) {
+        res.status(400).json({ type: errors_1.ProductErrors.NO_USERS_FOUND });
+    }
 }));
