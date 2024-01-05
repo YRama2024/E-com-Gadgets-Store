@@ -7,7 +7,13 @@ import { productRouter } from "./routes/product";
 const app = express();
 
 app.use(express.json());
-app.use(cors());
+app.use(cors(
+  {
+    origin: ["https://deploy-mern-1whq.vercel.app"],
+    methods: ["POST","GET"],
+    credentials:true
+  }
+));
 
 app.use("/auth", userRouter);
 app.use("/products", productRouter);
