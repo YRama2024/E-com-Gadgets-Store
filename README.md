@@ -1,5 +1,5 @@
-
-Welcome to the Ecom Gadget Store, your go-to electronic e-commerce marketplace for a wide range of digital products.
+**E-com-Gadget-Store**
+Welcome to the **E-com-Gadget-Store** Store, your go-to electronic e-commerce marketplace for a wide range of digital products.
 
 Key Features:
 
